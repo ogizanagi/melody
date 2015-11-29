@@ -1,6 +1,6 @@
 <?php
 
-namespace SensioLabs\Melody\Handler;
+namespace SensioLabs\Melody\Resource;
 
 use SensioLabs\Melody\Exception\InvalidCredentialsException;
 use SensioLabs\Melody\Security\Token;
@@ -8,7 +8,7 @@ use SensioLabs\Melody\Security\Token;
 /**
  * @author Maxime STEINHAUSSER <maxime.steinhausser@gmail.com>
  */
-interface AuthenticableHandlerInterface
+interface AuthenticableResourceInterface
 {
     const CREDENTIALS_NORMAL = 'normal';
     const CREDENTIALS_SECRET = 'secret';
@@ -19,11 +19,11 @@ interface AuthenticableHandlerInterface
      * The array should be like:
      *
      * array(
-     *     'username' => AuthenticableHandlerInterface::CREDENTIALS_NORMAL,
-     *     'password' => AuthenticableHandlerInterface::CREDENTIALS_SECRET,
+     *     'username' => AuthenticableResourceInterface::CREDENTIALS_NORMAL,
+     *     'password' => AuthenticableResourceInterface::CREDENTIALS_SECRET,
      * );
      *
-     * or array('token') if none of the information are particularly sensitive (defaults to AuthenticableHandlerInterface::CREDENTIALS_NORMAL).
+     * or array('token') if none of the information are particularly sensitive (defaults to AuthenticableResourceInterface::CREDENTIALS_NORMAL).
      *
      * @return array
      */
@@ -41,7 +41,7 @@ interface AuthenticableHandlerInterface
     public function authenticate(array $credentials);
 
     /**
-     * Get the key allowing to identify this handler.
+     * Get the key allowing to identify this resource.
      *
      * @return string
      */

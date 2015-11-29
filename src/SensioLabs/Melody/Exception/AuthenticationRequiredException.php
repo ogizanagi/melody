@@ -2,26 +2,26 @@
 
 namespace SensioLabs\Melody\Exception;
 
-use SensioLabs\Melody\Handler\ResourceHandlerInterface;
+use SensioLabs\Melody\Resource\AuthenticableResourceInterface;
 
 /**
  * @author Maxime STEINHAUSSER <maxime.steinhausser@gmail.com>
  */
 class AuthenticationRequiredException extends \LogicException
 {
-    private $handler;
+    private $resource;
 
-    public function __construct(ResourceHandlerInterface $handler, $message, $code = 0, \Exception $previous = null)
+    public function __construct(AuthenticableResourceInterface $resource, $message, $code = 0, \Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
-        $this->handler = $handler;
+        $this->resource = $resource;
     }
 
     /**
-     * @return ResourceHandlerInterface
+     * @return AuthenticableResourceInterface
      */
-    public function getHandler()
+    public function getResource()
     {
-        return $this->handler;
+        return $this->resource;
     }
 }

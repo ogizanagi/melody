@@ -3,7 +3,7 @@
 namespace SensioLabs\Melody\Console\Helper;
 
 use SensioLabs\Melody\Exception\InvalidCredentialsException;
-use SensioLabs\Melody\Handler\AuthenticableHandlerInterface;
+use SensioLabs\Melody\Resource\AuthenticableResourceInterface;
 use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,17 +13,17 @@ use Symfony\Component\Console\Question\Question;
 /**
  * @author Maxime STEINHAUSSER <maxime.steinhausser@gmail.com>
  */
-class HandlerAuthenticationHelper extends Helper
+class ResourceAuthenticationHelper extends Helper
 {
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
-        return 'handler_authentication';
+        return 'resource_authentication';
     }
 
-    public function askCredentials(InputInterface $input, OutputInterface $output, AuthenticableHandlerInterface $handler)
+    public function askCredentials(InputInterface $input, OutputInterface $output, AuthenticableResourceInterface $resource)
     {
         /** @var QuestionHelper $questionHelper */
         $questionHelper = $this->getHelperSet()->get('question');
@@ -31,14 +31,14 @@ class HandlerAuthenticationHelper extends Helper
         for (;;) {
             $credentials = [];
             $output->writeln('Authentication required. Please, provide the following informations:');
-            foreach ($this->getRequiredCredentials($handler) as $name => $type) {
+            foreach ($this->getRequiredCredentials($resource) as $name => $type) {
                 $question = new Question(sprintf('<fg=yellow>%s:</> ', $name));
-                $question->setHidden(AuthenticableHandlerInterface::CREDENTIALS_SECRET === $type);
+                $question->setHidden(AuthenticableResourceInterface::CREDENTIALS_SECRET === $type);
                 $credentials[$name] = $questionHelper->ask($input, $output, $question);
             }
 
             try {
-                return $handler->authenticate($credentials);
+                return $resource->authenticate($credentials);
                 break;
             } catch (InvalidCredentialsException $e) {
                 $output->writeln(sprintf('<error>Something wrong happened: %s.</error>', $e->getMessage()));
@@ -46,16 +46,16 @@ class HandlerAuthenticationHelper extends Helper
         }
     }
 
-    private function getRequiredCredentials(AuthenticableHandlerInterface $handler)
+    private function getRequiredCredentials(AuthenticableResourceInterface $resource)
     {
-        $requiredCredentials = $handler->getRequiredCredentials();
+        $requiredCredentials = $resource->getRequiredCredentials();
 
         if (!ctype_digit(implode('', array_keys($requiredCredentials)))) {
             return $requiredCredentials;
         }
 
         return $requiredCredentials = array_map(function () {
-            return AuthenticableHandlerInterface::CREDENTIALS_NORMAL;
+            return AuthenticableResourceInterface::CREDENTIALS_NORMAL;
         }, array_flip($requiredCredentials));
     }
 }

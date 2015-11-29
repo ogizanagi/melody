@@ -6,7 +6,6 @@ use SensioLabs\Melody\Configuration\RunConfiguration;
 use SensioLabs\Melody\Configuration\UserConfigurationRepository;
 use SensioLabs\Melody\Exception\AuthenticationRequiredException;
 use SensioLabs\Melody\Exception\TrustException;
-use SensioLabs\Melody\Handler\AuthenticableHandlerInterface;
 use SensioLabs\Melody\Melody;
 use SensioLabs\Melody\Resource\Resource;
 use SensioLabs\Melody\Security\TokenStorage;
@@ -123,15 +122,10 @@ EOT
                     $e->getMessage()
                 ));
 
-                $handler = $e->getHandler();
-                if (!$handler instanceof AuthenticableHandlerInterface) {
-                    $output->writeln(sprintf('<error>%s.</error>', $e->getMessage()));
-
-                    return 1;
-                }
-                $handlerAuthenticationHelper = $this->getHelper('handler_authentication');
-                $token = $handlerAuthenticationHelper->askCredentials($input, $output, $handler);
-                $tokenStorage->set($handler->getKey(), $token);
+                $resource = $e->getResource();
+                $resourceAuthenticationHelper = $this->getHelper('resource_authentication');
+                $token = $resourceAuthenticationHelper->askCredentials($input, $output, $resource);
+                $tokenStorage->set($resource->getKey(), $token);
                 $configRepository->save($userConfig);
             }
         }
