@@ -124,7 +124,7 @@ EOT
 
                 $resource = $e->getResource();
                 $resourceAuthenticationHelper = $this->getHelper('resource_authentication');
-                $token = $resourceAuthenticationHelper->askCredentials($input, $output, $resource);
+                $token = $resourceAuthenticationHelper->askCredentials($input, $output, $melody->findAuthenticationHandlerForResource($resource));
                 $tokenStorage->set($resource->getKey(), $token);
                 $configRepository->save($userConfig);
             }

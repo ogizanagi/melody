@@ -3,7 +3,7 @@
 namespace SensioLabs\Melody\Console\Helper;
 
 use SensioLabs\Melody\Exception\InvalidCredentialsException;
-use SensioLabs\Melody\Resource\AuthenticableResourceInterface;
+use SensioLabs\Melody\Handler\AuthenticationHandlerInterface;
 use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,7 +23,7 @@ class ResourceAuthenticationHelper extends Helper
         return 'resource_authentication';
     }
 
-    public function askCredentials(InputInterface $input, OutputInterface $output, AuthenticableResourceInterface $resource)
+    public function askCredentials(InputInterface $input, OutputInterface $output, AuthenticationHandlerInterface $authenticationHandler)
     {
         /** @var QuestionHelper $questionHelper */
         $questionHelper = $this->getHelperSet()->get('question');
@@ -31,14 +31,14 @@ class ResourceAuthenticationHelper extends Helper
         for (;;) {
             $credentials = [];
             $output->writeln('Authentication required. Please, provide the following informations:');
-            foreach ($this->getRequiredCredentials($resource) as $name => $type) {
+            foreach ($this->getRequiredCredentials($authenticationHandler) as $name => $type) {
                 $question = new Question(sprintf('<fg=yellow>%s:</> ', $name));
-                $question->setHidden(AuthenticableResourceInterface::CREDENTIALS_SECRET === $type);
+                $question->setHidden(AuthenticationHandlerInterface::CREDENTIALS_SECRET === $type);
                 $credentials[$name] = $questionHelper->ask($input, $output, $question);
             }
 
             try {
-                return $resource->authenticate($credentials);
+                return $authenticationHandler->authenticate($credentials);
                 break;
             } catch (InvalidCredentialsException $e) {
                 $output->writeln(sprintf('<error>Something wrong happened: %s.</error>', $e->getMessage()));
@@ -46,16 +46,16 @@ class ResourceAuthenticationHelper extends Helper
         }
     }
 
-    private function getRequiredCredentials(AuthenticableResourceInterface $resource)
+    private function getRequiredCredentials(AuthenticationHandlerInterface $authenticationHandler)
     {
-        $requiredCredentials = $resource->getRequiredCredentials();
+        $requiredCredentials = $authenticationHandler->getRequiredCredentials();
 
         if (!ctype_digit(implode('', array_keys($requiredCredentials)))) {
             return $requiredCredentials;
         }
 
         return $requiredCredentials = array_map(function () {
-            return AuthenticableResourceInterface::CREDENTIALS_NORMAL;
+            return AuthenticationHandlerInterface::CREDENTIALS_NORMAL;
         }, array_flip($requiredCredentials));
     }
 }

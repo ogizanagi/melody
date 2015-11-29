@@ -6,9 +6,11 @@ use SensioLabs\Melody\Composer\Composer;
 use SensioLabs\Melody\Configuration\RunConfiguration;
 use SensioLabs\Melody\Configuration\UserConfiguration;
 use SensioLabs\Melody\Exception\TrustException;
+use SensioLabs\Melody\Handler\AuthenticationHandlerInterface;
 use SensioLabs\Melody\Handler\FileHandler;
 use SensioLabs\Melody\Handler\GistHandler;
 use SensioLabs\Melody\Handler\StreamHandler;
+use SensioLabs\Melody\Resource\AuthenticableResourceInterface;
 use SensioLabs\Melody\Resource\LocalResource;
 use SensioLabs\Melody\Resource\Resource;
 use SensioLabs\Melody\Runner\Runner;
@@ -28,6 +30,7 @@ class Melody
 
     private $garbageCollector;
     private $handlers;
+    private $authenticationHandlers;
     private $wdFactory;
     private $scriptBuilder;
     private $composer;
@@ -39,9 +42,10 @@ class Melody
         $this->garbageCollector = new GarbageCollector($storagePath);
         $this->handlers = array(
             new FileHandler(),
-            new GistHandler($tokenStorage),
+            $gistHandler = new GistHandler($tokenStorage),
             new StreamHandler(),
         );
+        $this->authenticationHandlers = array($gistHandler);
         $this->scriptBuilder = new ScriptBuilder();
         $this->wdFactory = new WorkingDirectoryFactory($storagePath);
         $this->composer = new Composer();
@@ -86,6 +90,22 @@ class Melody
         $process = $this->runner->getProcess($script, $workingDirectory->getPath());
 
         return $cliExecutor($process, false);
+    }
+
+    /**
+     * @param AuthenticableResourceInterface $resource
+     *
+     * @return AuthenticationHandlerInterface
+     */
+    public function findAuthenticationHandlerForResource(AuthenticableResourceInterface $resource)
+    {
+        foreach ($this->authenticationHandlers as $handler) {
+            if ($handler->supportsAuthenticate($resource)) {
+                return $handler;
+            }
+        }
+
+        throw new \LogicException(sprintf('No handler found for resource "%s".', get_class($resource)));
     }
 
     /**
